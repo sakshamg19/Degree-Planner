@@ -4,42 +4,52 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from .models import Course
-from .serializers import CourseSerializer
+from .models import PlannedCourse
+from .serializers import PlannedCourseSerializer
 from .utils import validate_password_strength, is_valid_email_format
 
 
 @api_view(['GET','POST'])
-def course_list(request):
+@permission_classes([IsAuthenticated])
+def planned_course_list(request):
     if request.method == 'GET':
-        courses = Course.objects.all()
-        serializer = CourseSerializer(courses, many=True)
+        courses = PlannedCourse.objects.filter(user=request.user)
+        serializer = PlannedCourseSerializer(courses, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        serializer = CourseSerializer(data=request.data)
+        data = request.data.copy()
+        data['user'] = request.user.id  # attach current user
+        data['source'] = 'manual'       # manually entered
+        serializer = PlannedCourseSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-@api_view(['GET','PUT','DELETE'])
-def course_detail(request, pk):
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def planned_course_detail(request, pk):
     try:
-        course = Course.objects.get(pk=pk)
-    except Course.DoesNotExist:
-        return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
+        course = PlannedCourse.objects.get(pk=pk, user=request.user)
+    except PlannedCourse.DoesNotExist:
+        return Response({'error': 'Course not found'}, status=404)
+
     if request.method == 'GET':
-        serializer = CourseSerializer(course)
+        serializer = PlannedCourseSerializer(course)
         return Response(serializer.data)
+
     elif request.method == 'PUT':
-        serializer = CourseSerializer(course, data=request.data)
+        data = request.data.copy()
+        data['user'] = request.user.id
+        serializer = PlannedCourseSerializer(course, data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=400)
+
     elif request.method == 'DELETE':
         course.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=204)
 
 @api_view(['POST'])
 def register(request):

@@ -3,8 +3,8 @@ from api import views
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 
 urlpatterns = [
-    path('courses/', views.course_list, name='course-list'),
-    path('courses/<int:pk>/', views.course_detail, name='course-detail'),
+    path('planned-courses/', views.planned_course_list, name='planned-course-list'),
+    path('planned-courses/<int:pk>/', views.planned_course_detail, name='planned-course-detail'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), #for login token
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), #for refresh token
     path('register/', views.register, name='register'),

@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Course
+from .models import PlannedCourse
 
-class CourseSerializer(serializers.ModelSerializer):
+class PlannedCourseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Course
+        model = PlannedCourse
         fields = '__all__'
+        read_only_fields = ['user','source']
