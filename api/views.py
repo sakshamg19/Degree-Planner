@@ -1,3 +1,4 @@
+from functools import partial
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -39,9 +40,7 @@ def planned_course_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        data = request.data.copy()
-        data['user'] = request.user.id
-        serializer = PlannedCourseSerializer(course, data=data)
+        serializer = PlannedCourseSerializer(course, data=request.data,partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
